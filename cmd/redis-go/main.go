@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net"
 	"strings"
@@ -42,28 +43,38 @@ func handleConnection(conn net.Conn) {
 		}
 
 		args, err := resp.Parse(buf[:n])
-		if err != nil {
-			log.Fatalf("error parsing input: %v", err)
+		if err != nil || len(args) == 0 {
+			log.Printf("error parsing input: %v", err)
+			return
 		}
 
 		switch strings.ToUpper(args[0]) {
 		case "PING":
-			writeToConn(conn, resp.SimpleString("PONG"))
-			return
+			err := writeToConn(conn, resp.SimpleString("PONG"))
+			if err != nil {
+				log.Print(err)
+				return
+			}
 		case "ECHO":
 			if len(args) < 2 {
 				log.Printf("ECHO call needs %d arg but got %d args", 2, len(args))
+				continue
 			}
-			writeToConn(conn, resp.BulkString(args[1]))
-			return
+
+			err := writeToConn(conn, resp.BulkString(args[1]))
+			if err != nil {
+				log.Print(err)
+				return
+			}
 		}
 	}
 }
 
-func writeToConn(conn net.Conn, data string) {
+func writeToConn(conn net.Conn, data string) error {
 	_, err := conn.Write([]byte(data))
 	if err != nil {
-		log.Printf("error writing a response: %v", err)
-		return
+		return fmt.Errorf("error writing a response: %w", err)
 	}
+
+	return nil
 }
