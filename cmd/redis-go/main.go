@@ -6,8 +6,11 @@ import (
 	"net"
 	"strings"
 
+	"github.com/codecrafters-io/redis-starter-go/internal/db"
 	"github.com/codecrafters-io/redis-starter-go/internal/resp"
 )
+
+var store = db.New()
 
 func main() {
 	log.SetFlags(0)
@@ -50,22 +53,38 @@ func handleConnection(conn net.Conn) {
 
 		switch strings.ToUpper(args[0]) {
 		case "PING":
-			err := writeToConn(conn, resp.SimpleString("PONG"))
-			if err != nil {
-				log.Print(err)
-				return
-			}
+			err = writeToConn(conn, resp.SimpleString("PONG"))
+
 		case "ECHO":
 			if len(args) < 2 {
-				log.Printf("ECHO call needs %d arg but got %d args", 2, len(args))
+				log.Printf("ECHO call needs %d args but got %d args", 2, len(args))
 				continue
 			}
 
-			err := writeToConn(conn, resp.BulkString(args[1]))
-			if err != nil {
-				log.Print(err)
-				return
+			err = writeToConn(conn, resp.BulkString(args[1]))
+
+		case "SET":
+			if len(args) < 3 {
+				log.Printf("SET call needs %d args but got %d args", 3, len(args))
+				continue
 			}
+
+			store.Set(args[1], args[2])
+			err = writeToConn(conn, resp.SimpleString("OK"))
+
+		case "GET":
+			if len(args) < 2 {
+				log.Printf("GET call needs %d args but got %d args", 2, len(args))
+				continue
+			}
+
+			value := store.Get(args[1])
+			err = writeToConn(conn, resp.BulkString(value))
+		}
+
+		if err != nil {
+			log.Print(err)
+			break
 		}
 	}
 }
