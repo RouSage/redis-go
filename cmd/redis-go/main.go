@@ -21,9 +21,19 @@ func main() {
 		os.Exit(1)
 	}
 
-	_, err = conn.Write([]byte(resp.String("PONG")))
-	if err != nil {
-		fmt.Fprintln(os.Stderr, fmt.Errorf("error writing a response: %w", err))
-		os.Exit(1)
+	buf := make([]byte, 1024)
+	for {
+		_, err := conn.Read(buf)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, fmt.Errorf("error reading from the connection: %w", err))
+			break
+		}
+
+		_, err = conn.Write([]byte(resp.String("PONG")))
+		if err != nil {
+			fmt.Fprintln(os.Stderr, fmt.Errorf("error writing a response: %w", err))
+			break
+		}
 	}
+
 }
