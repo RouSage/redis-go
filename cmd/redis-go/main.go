@@ -1,39 +1,55 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"net"
-	"os"
+	"strings"
 
 	"github.com/codecrafters-io/redis-starter-go/internal/resp"
 )
 
 func main() {
-	listener, err := net.Listen("tcp", "0.0.0.0:6379")
+	log.SetFlags(0)
+
+	listener, err := net.Listen("tcp", "0.0.0.0:6379") //nolint:gosec // G102: must listen on all interfaces for the tester
 	if err != nil {
-		fmt.Fprintln(os.Stderr, fmt.Errorf("failed to bind to port 6379: %w", err))
-		os.Exit(1)
+		log.Fatalf("failed to bind to port 6379: %v", err)
 	}
 
-	conn, err := listener.Accept()
-	if err != nil {
-		fmt.Fprintln(os.Stderr, fmt.Errorf("error accepting connection: %w", err))
-		os.Exit(1)
+	for {
+		conn, err := listener.Accept()
+		if err != nil {
+			log.Fatalf("error accepting connection: %v", err)
+		}
+
+		go handleConnection(conn)
 	}
+}
+
+func handleConnection(conn net.Conn) {
+	defer func() {
+		if err := conn.Close(); err != nil {
+			log.Printf("error closing connection: %v", err)
+		}
+	}()
 
 	buf := make([]byte, 1024)
 	for {
-		_, err := conn.Read(buf)
+		n, err := conn.Read(buf)
 		if err != nil {
-			fmt.Fprintln(os.Stderr, fmt.Errorf("error reading from the connection: %w", err))
+			log.Printf("error reading from connection: %v", err)
 			break
 		}
 
-		_, err = conn.Write([]byte(resp.String("PONG")))
-		if err != nil {
-			fmt.Fprintln(os.Stderr, fmt.Errorf("error writing a response: %w", err))
-			break
+		data := string(buf[:n])
+		log.Printf("Received data: %s\n", data)
+
+		if strings.Contains(data, "PING") {
+			_, err = conn.Write([]byte(resp.String("PONG")))
+			if err != nil {
+				log.Printf("error writing a response: %v", err)
+				break
+			}
 		}
 	}
-
 }

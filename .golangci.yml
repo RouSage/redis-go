@@ -1,0 +1,27 @@
+version: "2"
+
+linters:
+    default: standard
+    enable:
+        - gosec
+    exclusions:
+        warn-unused: false
+        generated: strict
+
+formatters:
+    enable:
+        - gofmt
+    exclusions:
+        warn-unused: false
+        generated: strict
+
+issues:
+    max-issues-per-linter: 50
+    max-same-issues: 3
+    new: false
+    fix: false
+    uniq-by-line: true
+    whole-files: false
+
+severity:
+    default: error
