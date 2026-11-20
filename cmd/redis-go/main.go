@@ -41,15 +41,29 @@ func handleConnection(conn net.Conn) {
 			break
 		}
 
-		data := string(buf[:n])
-		log.Printf("Received data: %s\n", data)
-
-		if strings.Contains(data, "PING") {
-			_, err = conn.Write([]byte(resp.String("PONG")))
-			if err != nil {
-				log.Printf("error writing a response: %v", err)
-				break
-			}
+		args, err := resp.Parse(buf[:n])
+		if err != nil {
+			log.Fatalf("error parsing input: %v", err)
 		}
+
+		switch strings.ToUpper(args[0]) {
+		case "PING":
+			writeToConn(conn, resp.SimpleString("PONG"))
+			return
+		case "ECHO":
+			if len(args) < 2 {
+				log.Printf("ECHO call needs %d arg but got %d args", 2, len(args))
+			}
+			writeToConn(conn, resp.BulkString(args[1]))
+			return
+		}
+	}
+}
+
+func writeToConn(conn net.Conn, data string) {
+	_, err := conn.Write([]byte(data))
+	if err != nil {
+		log.Printf("error writing a response: %v", err)
+		return
 	}
 }

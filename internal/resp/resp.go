@@ -2,10 +2,10 @@ package resp
 
 import "fmt"
 
-const (
-	crlf string = "\r\n"
-)
+func SimpleString(value string) string {
+	return fmt.Sprintf("+%s%s", value, sep)
+}
 
-func String(value string) string {
-	return fmt.Sprintf("+%s%s", value, crlf)
+func BulkString(value string) string {
+	return fmt.Sprintf("$%d%s%s%s", len(value), sep, value, sep)
 }
