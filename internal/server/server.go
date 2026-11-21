@@ -69,7 +69,7 @@ func (s *Server) handleConnection(conn net.Conn) {
 
 		response, err := s.handler.Handle(args)
 		if err != nil {
-			response = resp.SimpleError("ERR " + err.Error())
+			response = resp.SimpleError(err.Error())
 		}
 
 		if err = writeToConn(conn, response); err != nil {

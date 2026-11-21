@@ -20,7 +20,8 @@ const (
 
 type Store interface {
 	Set(key, value string, ttl time.Duration)
-	Get(key string) (string, bool)
+	Get(key string) (string, bool, error)
+	RPush(key string, values ...string) (int, error)
 }
 
 type Handler struct {
@@ -55,7 +56,10 @@ func (h *Handler) Handle(args []string) (string, error) {
 			return "", err
 		}
 
-		value, ok := h.store.Get(args[1])
+		value, ok, err := h.store.Get(args[1])
+		if err != nil {
+			return "", err
+		}
 		if !ok {
 			return resp.NullBulkString(), nil
 		}
@@ -63,11 +67,7 @@ func (h *Handler) Handle(args []string) (string, error) {
 		return resp.BulkString(value), nil
 
 	case RPUSH:
-		if err := assertArgs(args, RPUSH, 3); err != nil {
-			return "", err
-		}
-
-		return resp.Int(1), nil
+		return h.rpush(args)
 
 	case COMMAND: // random return for COMMAND in order to use redis-cli
 		return resp.SimpleString("OK"), nil

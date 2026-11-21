@@ -7,14 +7,14 @@ import (
 )
 
 var (
-	errSyntax        = errors.New("syntax error")
-	errInvalidExpire = errors.New("invalid expire time in 'set' command")
+	errSyntax        = errors.New("ERR syntax error")
+	errInvalidExpire = errors.New("ERR invalid expire time in 'set' command")
 )
 
 func errWrongArgs(cmd string) error {
-	return fmt.Errorf("wrong number of arguments for '%s' command", strings.ToLower(cmd))
+	return fmt.Errorf("ERR wrong number of arguments for '%s' command", strings.ToLower(cmd))
 }
 
 func errUnknownCommand(cmd string) error {
-	return fmt.Errorf("unknown command '%s'", cmd)
+	return fmt.Errorf("ERR unknown command '%s'", cmd)
 }
