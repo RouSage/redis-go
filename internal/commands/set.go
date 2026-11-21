@@ -32,18 +32,28 @@ func parseSetOptions(args []string) (setOptions, error) {
 	var options setOptions
 
 	for i := 0; i < len(args); i++ {
-		switch strings.ToUpper(args[i]) {
-		case "PX":
+		arg := strings.ToUpper(args[i])
+
+		switch arg {
+		case "EX", "PX":
+			if options.ttl > 0 {
+				return setOptions{}, errors.New("syntax error: only one of EX or PX is allowed")
+			}
 			if i+1 >= len(args) {
-				return setOptions{}, errors.New("syntax error: PX requires a value")
+				return setOptions{}, fmt.Errorf("syntax error: %s requires a value", arg)
 			}
 
-			ms, err := strconv.ParseInt(args[i+1], 10, 64)
-			if err != nil || ms <= 0 {
-				return setOptions{}, fmt.Errorf("invalid PX expire time in '%s' command: %q", SET, args[i+1])
+			unit := time.Second
+			if arg == "PX" {
+				unit = time.Millisecond
 			}
 
-			options.ttl = time.Duration(ms) * time.Millisecond
+			ttl, err := strconv.ParseInt(args[i+1], 10, 64)
+			if err != nil || ttl <= 0 {
+				return setOptions{}, fmt.Errorf("invalid %s expiry time in '%s' command: %q", arg, SET, args[i+1])
+			}
+
+			options.ttl = time.Duration(ttl) * unit
 			i++ // skip the ms value
 
 		default:
