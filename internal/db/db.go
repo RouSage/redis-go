@@ -128,6 +128,18 @@ func (db *DB) LRange(key string, start, stop int) ([]string, error) {
 	return slices.Clone(list[start : stop+1]), nil
 }
 
+func (db *DB) LLen(key string) (int, error) {
+	db.mu.Lock()
+	defer db.mu.Unlock()
+
+	list, err := db.lookupList(key)
+	if err != nil {
+		return 0, err
+	}
+
+	return len(list), nil
+}
+
 func (db *DB) lookup(key string) (data, bool) {
 	d, ok := db.store[key]
 	if !ok {

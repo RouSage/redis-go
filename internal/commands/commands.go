@@ -18,6 +18,7 @@ const (
 	RPUSH   Command = "RPUSH"
 	LPUSH   Command = "LPUSH"
 	LRANGE  Command = "LRANGE"
+	LLEN    Command = "LLEN"
 )
 
 type Store interface {
@@ -26,6 +27,7 @@ type Store interface {
 	RPush(key string, values ...string) (int, error)
 	LPush(key string, values ...string) (int, error)
 	LRange(key string, start, stop int) ([]string, error)
+	LLen(key string) (int, error)
 }
 
 type Handler struct {
@@ -78,6 +80,9 @@ func (h *Handler) Handle(args []string) (string, error) {
 
 	case LRANGE:
 		return h.lrange(args)
+
+	case LLEN:
+		return h.llen(args)
 
 	case COMMAND: // random return for COMMAND in order to use redis-cli
 		return resp.SimpleString("OK"), nil

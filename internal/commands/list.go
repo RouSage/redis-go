@@ -54,3 +54,16 @@ func (h *Handler) lrange(args []string) (string, error) {
 
 	return resp.Array(values), nil
 }
+
+func (h *Handler) llen(args []string) (string, error) {
+	if err := assertExactArgs(args, RPUSH, 2); err != nil {
+		return "", err
+	}
+
+	length, err := h.store.LLen(args[1])
+	if err != nil {
+		return "", err
+	}
+
+	return resp.Int(length), nil
+}
