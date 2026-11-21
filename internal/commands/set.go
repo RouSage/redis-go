@@ -1,8 +1,6 @@
 package commands
 
 import (
-	"errors"
-	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -37,10 +35,10 @@ func parseSetOptions(args []string) (setOptions, error) {
 		switch arg {
 		case "EX", "PX":
 			if options.ttl > 0 {
-				return setOptions{}, errors.New("syntax error: only one of EX or PX is allowed")
+				return setOptions{}, errSyntax
 			}
 			if i+1 >= len(args) {
-				return setOptions{}, fmt.Errorf("syntax error: %s requires a value", arg)
+				return setOptions{}, errSyntax
 			}
 
 			unit := time.Second
@@ -50,14 +48,14 @@ func parseSetOptions(args []string) (setOptions, error) {
 
 			ttl, err := strconv.ParseInt(args[i+1], 10, 64)
 			if err != nil || ttl <= 0 {
-				return setOptions{}, fmt.Errorf("invalid %s expiry time in '%s' command: %q", arg, SET, args[i+1])
+				return setOptions{}, errInvalidExpire
 			}
 
 			options.ttl = time.Duration(ttl) * unit
 			i++ // skip the ms value
 
 		default:
-			return setOptions{}, fmt.Errorf("syntax error: unexpected %q", args[i])
+			return setOptions{}, errSyntax
 		}
 	}
 

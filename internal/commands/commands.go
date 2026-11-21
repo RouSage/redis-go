@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"fmt"
 	"strings"
 	"time"
 
@@ -66,13 +65,13 @@ func (h *Handler) Handle(args []string) (string, error) {
 		return resp.SimpleString("OK"), nil
 
 	default:
-		return "", fmt.Errorf("unrecognized command: %s", cmd)
+		return "", errUnknownCommand(args[0])
 	}
 }
 
 func assertArgs(args []string, cmd string, n int) error {
 	if len(args) < n {
-		return fmt.Errorf("%s call needs %d args but got %d args", cmd, n, len(args))
+		return errWrongArgs(cmd)
 	}
 
 	return nil

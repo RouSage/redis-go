@@ -57,18 +57,22 @@ func (s *Server) handleConnection(conn net.Conn) {
 		}
 
 		args, err := resp.Parse(buf[:n])
-		if err != nil || len(args) == 0 {
-			log.Printf("error parsing input: %v", err)
+		if err != nil {
+			if err := writeToConn(conn, resp.SimpleError("ERR Protocol error: "+err.Error())); err != nil {
+				log.Print(err)
+			}
 			return
 		}
-
-		resp, err := s.handler.Handle(args)
-		if err != nil {
-			log.Print(err)
+		if len(args) == 0 {
 			continue
 		}
 
-		if err = writeToConn(conn, resp); err != nil {
+		response, err := s.handler.Handle(args)
+		if err != nil {
+			response = resp.SimpleError("ERR " + err.Error())
+		}
+
+		if err = writeToConn(conn, response); err != nil {
 			log.Print(err)
 			break
 		}
