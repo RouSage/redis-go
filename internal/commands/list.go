@@ -1,6 +1,10 @@
 package commands
 
-import "github.com/codecrafters-io/redis-starter-go/internal/resp"
+import (
+	"strconv"
+
+	"github.com/codecrafters-io/redis-starter-go/internal/resp"
+)
 
 func (h *Handler) rpush(args []string) (string, error) {
 	if err := assertArgs(args, RPUSH, 3); err != nil {
@@ -13,4 +17,27 @@ func (h *Handler) rpush(args []string) (string, error) {
 	}
 
 	return resp.Int(length), nil
+}
+
+func (h *Handler) lrange(args []string) (string, error) {
+	if err := assertExactArgs(args, LRANGE, 4); err != nil {
+		return "", err
+	}
+
+	start, err := strconv.Atoi(args[2])
+	if err != nil {
+		return "", errNotInteger
+	}
+
+	stop, err := strconv.Atoi(args[3])
+	if err != nil {
+		return "", errNotInteger
+	}
+
+	values, err := h.store.LRange(args[1], start, stop)
+	if err != nil {
+		return "", err
+	}
+
+	return resp.Array(values), nil
 }

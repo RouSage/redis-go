@@ -1,6 +1,9 @@
 package resp
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 func SimpleString(value string) string {
 	return fmt.Sprintf("+%s%s", value, sep)
@@ -24,4 +27,13 @@ func NullBulkString() string {
 
 func Int(value int) string {
 	return fmt.Sprintf(":%d%s", value, sep)
+}
+
+func Array(values []string) string {
+	var elements strings.Builder
+	for _, value := range values {
+		elements.WriteString(BulkString(value))
+	}
+
+	return fmt.Sprintf("*%d%s%s", len(values), sep, elements.String())
 }

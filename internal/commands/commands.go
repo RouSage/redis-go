@@ -16,12 +16,14 @@ const (
 	GET     Command = "GET"
 	COMMAND Command = "COMMAND"
 	RPUSH   Command = "RPUSH"
+	LRANGE  Command = "LRANGE"
 )
 
 type Store interface {
 	Set(key, value string, ttl time.Duration)
 	Get(key string) (string, bool, error)
 	RPush(key string, values ...string) (int, error)
+	LRange(key string, start, stop int) ([]string, error)
 }
 
 type Handler struct {
@@ -69,6 +71,9 @@ func (h *Handler) Handle(args []string) (string, error) {
 	case RPUSH:
 		return h.rpush(args)
 
+	case LRANGE:
+		return h.lrange(args)
+
 	case COMMAND: // random return for COMMAND in order to use redis-cli
 		return resp.SimpleString("OK"), nil
 
@@ -79,6 +84,14 @@ func (h *Handler) Handle(args []string) (string, error) {
 
 func assertArgs(args []string, cmd string, n int) error {
 	if len(args) < n {
+		return errWrongArgs(cmd)
+	}
+
+	return nil
+}
+
+func assertExactArgs(args []string, cmd string, n int) error {
+	if len(args) != n {
 		return errWrongArgs(cmd)
 	}
 

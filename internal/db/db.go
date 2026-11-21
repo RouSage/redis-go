@@ -2,6 +2,7 @@ package db
 
 import (
 	"errors"
+	"slices"
 	"sync"
 	"time"
 )
@@ -71,20 +72,34 @@ func (db *DB) RPush(key string, values ...string) (int, error) {
 	defer db.mu.Unlock()
 
 	// TODO: keep TTL when EXPIRE exists
-	var list listValue
-	if d, ok := db.lookup(key); ok {
-		l, ok := d.value.(listValue)
-		if !ok {
-			return 0, ErrWrongType
-		}
-
-		list = l
+	list, err := db.lookupList(key)
+	if err != nil {
+		return 0, err
 	}
 
 	list = append(list, values...)
 	db.store[key] = data{value: list}
 
 	return len(list), nil
+}
+
+func (db *DB) LRange(key string, start, stop int) ([]string, error) {
+	db.mu.Lock()
+	defer db.mu.Unlock()
+
+	list, err := db.lookupList(key)
+	if err != nil {
+		return nil, err
+	}
+
+	if start > stop || start >= len(list) {
+		return []string{}, nil
+	}
+	if stop >= len(list) {
+		stop = len(list) - 1
+	}
+
+	return slices.Clone(list[start : stop+1]), nil
 }
 
 func (db *DB) lookup(key string) (data, bool) {
@@ -100,6 +115,20 @@ func (db *DB) lookup(key string) (data, bool) {
 	}
 
 	return d, ok
+}
+
+func (db *DB) lookupList(key string) (listValue, error) {
+	d, ok := db.lookup(key)
+	if !ok {
+		return nil, nil
+	}
+
+	list, ok := d.value.(listValue)
+	if !ok {
+		return nil, ErrWrongType
+	}
+
+	return list, nil
 }
 
 func (db *DB) delete(key string) {
