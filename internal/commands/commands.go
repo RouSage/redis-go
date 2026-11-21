@@ -15,6 +15,7 @@ const (
 	SET     Command = "SET"
 	GET     Command = "GET"
 	COMMAND Command = "COMMAND"
+	RPUSH   Command = "RPUSH"
 )
 
 type Store interface {
@@ -60,6 +61,13 @@ func (h *Handler) Handle(args []string) (string, error) {
 		}
 
 		return resp.BulkString(value), nil
+
+	case RPUSH:
+		if err := assertArgs(args, RPUSH, 3); err != nil {
+			return "", err
+		}
+
+		return resp.Int(1), nil
 
 	case COMMAND: // random return for COMMAND in order to use redis-cli
 		return resp.SimpleString("OK"), nil

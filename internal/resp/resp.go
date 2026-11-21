@@ -21,3 +21,7 @@ func BulkError(value string) string {
 func NullBulkString() string {
 	return fmt.Sprintf("$-1%s", sep)
 }
+
+func Int(value int) string {
+	return fmt.Sprintf(":%d%s", value, sep)
+}
