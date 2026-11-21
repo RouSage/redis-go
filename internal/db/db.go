@@ -83,6 +83,25 @@ func (db *DB) RPush(key string, values ...string) (int, error) {
 	return len(list), nil
 }
 
+func (db *DB) LPush(key string, values ...string) (int, error) {
+	db.mu.Lock()
+	defer db.mu.Unlock()
+
+	// TODO: keep TTL when EXPIRE exists
+	list, err := db.lookupList(key)
+	if err != nil {
+		return 0, err
+	}
+
+	for _, value := range values {
+		list = append([]string{value}, list...)
+	}
+
+	db.store[key] = data{value: list}
+
+	return len(list), nil
+}
+
 func (db *DB) LRange(key string, start, stop int) ([]string, error) {
 	db.mu.Lock()
 	defer db.mu.Unlock()

@@ -16,6 +16,7 @@ const (
 	GET     Command = "GET"
 	COMMAND Command = "COMMAND"
 	RPUSH   Command = "RPUSH"
+	LPUSH   Command = "LPUSH"
 	LRANGE  Command = "LRANGE"
 )
 
@@ -23,6 +24,7 @@ type Store interface {
 	Set(key, value string, ttl time.Duration)
 	Get(key string) (string, bool, error)
 	RPush(key string, values ...string) (int, error)
+	LPush(key string, values ...string) (int, error)
 	LRange(key string, start, stop int) ([]string, error)
 }
 
@@ -70,6 +72,9 @@ func (h *Handler) Handle(args []string) (string, error) {
 
 	case RPUSH:
 		return h.rpush(args)
+
+	case LPUSH:
+		return h.lpush(args)
 
 	case LRANGE:
 		return h.lrange(args)
