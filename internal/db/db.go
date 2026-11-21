@@ -92,6 +92,13 @@ func (db *DB) LRange(key string, start, stop int) ([]string, error) {
 		return nil, err
 	}
 
+	if start < 0 {
+		start = max(0, len(list)+start)
+	}
+	if stop < 0 {
+		stop = max(0, len(list)+stop)
+	}
+
 	if start > stop || start >= len(list) {
 		return []string{}, nil
 	}
