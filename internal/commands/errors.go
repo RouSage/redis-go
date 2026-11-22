@@ -10,6 +10,7 @@ var (
 	errSyntax        = errors.New("ERR syntax error")
 	errInvalidExpire = errors.New("ERR invalid expire time in 'set' command")
 	errNotInteger    = errors.New("ERR value is not an integer or out of range")
+	errOutOfRange    = errors.New("ERR value is out of range, must be positive")
 )
 
 func errWrongArgs(cmd string) error {

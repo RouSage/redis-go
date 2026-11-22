@@ -27,7 +27,7 @@ type Store interface {
 	Get(key string) (string, bool, error)
 	RPush(key string, values ...string) (int, error)
 	LPush(key string, values ...string) (int, error)
-	LPop(key string) (string, bool, error)
+	LPop(key string, num int) ([]string, bool, error)
 	LRange(key string, start, stop int) ([]string, error)
 	LLen(key string) (int, error)
 }

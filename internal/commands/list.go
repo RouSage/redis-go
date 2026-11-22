@@ -33,11 +33,25 @@ func (h *Handler) lpush(args []string) (string, error) {
 }
 
 func (h *Handler) lpop(args []string) (string, error) {
-	if err := assertExactArgs(args, LPOP, 2); err != nil {
+	if err := assertArgs(args, LPOP, 2); err != nil {
 		return "", err
 	}
 
-	elem, ok, err := h.store.LPop(args[1])
+	num := 1
+	hasCount := len(args) > 2
+	if hasCount {
+		count, err := strconv.Atoi(args[2])
+		if err != nil {
+			return "", errNotInteger
+		}
+		if count < 0 {
+			return "", errOutOfRange
+		}
+
+		num = count
+	}
+
+	values, ok, err := h.store.LPop(args[1], num)
 	if err != nil {
 		return "", err
 	}
@@ -45,7 +59,10 @@ func (h *Handler) lpop(args []string) (string, error) {
 		return resp.NullBulkString(), nil
 	}
 
-	return resp.BulkString(elem), nil
+	if hasCount {
+		return resp.Array(values), nil
+	}
+	return resp.BulkString(values[0]), nil
 }
 
 func (h *Handler) lrange(args []string) (string, error) {

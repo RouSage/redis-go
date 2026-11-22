@@ -100,23 +100,27 @@ func (db *DB) LPush(key string, values ...string) (int, error) {
 	return len(list), nil
 }
 
-func (db *DB) LPop(key string) (string, bool, error) {
+func (db *DB) LPop(key string, num int) ([]string, bool, error) {
 	db.mu.Lock()
 	defer db.mu.Unlock()
 
 	list, err := db.lookupList(key)
 	if err != nil {
-		return "", false, err
+		return nil, false, err
+	}
+	if len(list) == 0 {
+		return nil, false, nil
 	}
 
-	elem := list[0]
-	if len(list) == 1 {
+	num = min(num, len(list))
+	values := list[:num]
+	if num >= len(list) {
 		db.delete(key)
 	} else {
-		db.store[key] = data{value: slices.Clone(list[1:])}
+		db.store[key] = data{value: slices.Clone(list[num:])}
 	}
 
-	return elem, true, nil
+	return values, true, nil
 }
 
 func (db *DB) LRange(key string, start, stop int) ([]string, error) {
