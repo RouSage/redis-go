@@ -20,7 +20,7 @@ func (h *Handler) rpush(args []string) (string, error) {
 }
 
 func (h *Handler) lpush(args []string) (string, error) {
-	if err := assertArgs(args, RPUSH, 3); err != nil {
+	if err := assertArgs(args, LPUSH, 3); err != nil {
 		return "", err
 	}
 
@@ -30,6 +30,22 @@ func (h *Handler) lpush(args []string) (string, error) {
 	}
 
 	return resp.Int(length), nil
+}
+
+func (h *Handler) lpop(args []string) (string, error) {
+	if err := assertExactArgs(args, LPOP, 2); err != nil {
+		return "", err
+	}
+
+	elem, ok, err := h.store.LPop(args[1])
+	if err != nil {
+		return "", err
+	}
+	if !ok {
+		return resp.NullBulkString(), nil
+	}
+
+	return resp.BulkString(elem), nil
 }
 
 func (h *Handler) lrange(args []string) (string, error) {
@@ -56,7 +72,7 @@ func (h *Handler) lrange(args []string) (string, error) {
 }
 
 func (h *Handler) llen(args []string) (string, error) {
-	if err := assertExactArgs(args, RPUSH, 2); err != nil {
+	if err := assertExactArgs(args, LLEN, 2); err != nil {
 		return "", err
 	}
 
