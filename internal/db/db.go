@@ -93,10 +93,8 @@ func (db *DB) LPush(key string, values ...string) (int, error) {
 		return 0, err
 	}
 
-	for _, value := range values {
-		list = append([]string{value}, list...)
-	}
-
+	slices.Reverse(values)
+	list = append(list, values...)
 	db.store[key] = data{value: list}
 
 	return len(list), nil
@@ -119,7 +117,6 @@ func (db *DB) LPop(key string) (string, bool, error) {
 	}
 
 	return elem, true, nil
-
 }
 
 func (db *DB) LRange(key string, start, stop int) ([]string, error) {
@@ -135,7 +132,7 @@ func (db *DB) LRange(key string, start, stop int) ([]string, error) {
 		start = max(0, len(list)+start)
 	}
 	if stop < 0 {
-		stop = max(0, len(list)+stop)
+		stop = len(list) + stop
 	}
 
 	if start > stop || start >= len(list) {
