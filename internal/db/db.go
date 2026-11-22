@@ -94,7 +94,7 @@ func (db *DB) LPush(key string, values ...string) (int, error) {
 	}
 
 	slices.Reverse(values)
-	list = append(list, values...)
+	list = append(values, list...)
 	db.store[key] = data{value: list}
 
 	return len(list), nil
